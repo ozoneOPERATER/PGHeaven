@@ -1,0 +1,58 @@
+<header [class.sticky]="isSticky" *ngIf="showHeader">
+  <div class="header-container">
+    <div class="logo">
+      <a routerLink="/" class="brand">
+        <span class="icon">🏠</span>
+        <span class="text">PG Rental</span>
+      </a>
+    </div>
+
+    <nav [class.open]="isMenuOpen" class="nav-menu">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="isMenuOpen = false">
+        Home
+      </a>
+      <a routerLink="/auth" routerLinkActive="active" *ngIf="!isLoggedIn" (click)="isMenuOpen = false">
+        Login / Register
+      </a>
+      <a routerLink="/dashboard" routerLinkActive="active" *ngIf="isLoggedIn" (click)="isMenuOpen = false">
+        My Bookings
+      </a>
+      <a routerLink="/help/service" routerLinkActive="active" *ngIf="isLoggedIn" (click)="isMenuOpen = false">
+        Request Service
+      </a>
+      <a routerLink="/help/order" routerLinkActive="active" *ngIf="isLoggedIn" (click)="isMenuOpen = false">
+        Place Order
+      </a>
+      <a routerLink="/help/complaint" routerLinkActive="active" *ngIf="isLoggedIn" (click)="isMenuOpen = false">
+        Report Issue
+      </a>
+      <a routerLink="/admin" routerLinkActive="active" *ngIf="isAdmin()" (click)="isMenuOpen = false">
+        Admin Panel
+      </a>
+    </nav>
+
+    <div class="header-controls">
+      <div *ngIf="isLoggedIn" class="user-menu">
+        <button class="profile-icon" (click)="navigateTo('/profile')" title="My Profile">
+          <ng-container *ngIf="user?.avatar; else letterAvatar">
+            <img [src]="authService.getImageUrl(user.avatar)" class="user-avatar-img" alt="avatar">
+          </ng-container>
+          <ng-template #letterAvatar>
+            <span class="user-avatar">{{ user?.name?.charAt(0).toUpperCase() }}</span>
+          </ng-template>
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="logout()">Logout</button>
+      </div>
+
+      <div *ngIf="!isLoggedIn" class="auth-links">
+        <a routerLink="/auth" class="btn btn-primary btn-sm">Login</a>
+      </div>
+
+      <button class="hamburger" (click)="toggleMenu()" [class.open]="isMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>

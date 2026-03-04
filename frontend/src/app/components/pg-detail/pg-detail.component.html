@@ -1,0 +1,208 @@
+<div *ngIf="pg" class="pg-detail" [@slideIn]>
+  <div class="detail-container">
+    <!-- Image Gallery -->
+    <div class="gallery-section">
+      <button class="back-btn" routerLink="/">
+        ← Back to Properties
+      </button>
+
+      <div class="main-image">
+        <img [src]="selectedImage || (pg.images && pg.images[0])" [alt]="pg.name" />
+      </div>
+      <div *ngIf="pg.images && pg.images.length > 1" class="thumbnail-gallery">
+        <div *ngFor="let img of pg.images" class="thumbnail" [class.active]="selectedImage === img"
+          (click)="selectImage(img)">
+          <img [src]="img" [alt]="pg.name" />
+        </div>
+      </div>
+
+      <!-- Ratings Section moved to left column -->
+      <div class="ratings-section" style="margin-top: 2rem;">
+        <h2>Customer Ratings</h2>
+        <div class="average-rating">
+          <span class="stars">{{ getStars(pg.averageRating || 0) }}</span>
+          <span class="rating-text">{{ (pg.averageRating || 0).toFixed(1) }} / 5 ({{ pg.ratings?.length || 0 }}
+            reviews)</span>
+        </div>
+        <div *ngIf="pg.ratings && pg.ratings.length > 0" class="reviews">
+          <div *ngFor="let r of pg.ratings" class="review">
+            <div class="review-header">
+              <div class="review-stars">{{ getStars(r.rating) }}</div>
+              <div class="review-user">{{ r.user?.name || 'Anonymous' }}</div>
+            </div>
+            <p>{{ r.review }}</p>
+            <small>{{ r.createdAt | date }}</small>
+          </div>
+        </div>
+        <div *ngIf="isLoggedIn()" class="rate-form">
+          <h3>Rate this PG</h3>
+          <form (ngSubmit)="submitRating()" #rateForm="ngForm">
+            <div class="rating-input">
+              <label>Rating:</label>
+              <select [(ngModel)]="userRating" name="rating" required>
+                <option value="1">1 ⭐</option>
+                <option value="2">2 ⭐⭐</option>
+                <option value="3">3 ⭐⭐⭐</option>
+                <option value="4">4 ⭐⭐⭐⭐</option>
+                <option value="5">5 ⭐⭐⭐⭐⭐</option>
+              </select>
+            </div>
+            <div class="review-input">
+              <label>Review (optional):</label>
+              <textarea [(ngModel)]="userReview" name="review" placeholder="Share your experience..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Rating</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Details Sidebar -->
+    <div class="details-sidebar">
+      <!-- Header Info -->
+      <div class="property-header">
+        <h1>{{ pg.name }}</h1>
+        <p class="location">📍 {{ pg.location }}</p>
+      </div>
+
+      <!-- Key Info Cards -->
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-icon">💰</div>
+          <div class="info-content">
+            <span class="info-label">Price per Day</span>
+            <span class="info-value">₹{{ pg.price | number }}</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">🛏️</div>
+          <div class="info-content">
+            <span class="info-label">Rooms</span>
+            <span class="info-value">Total: {{ pg.totalRooms || pg.availableRooms || 1 }}, Available: {{
+              pg.availableRooms || 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities/Description -->
+      <div class="description-section">
+        <h2>About This Property</h2>
+        <p>{{ pg.description }}</p>
+      </div>
+
+      <!-- Booking Section -->
+      <form (ngSubmit)="bookNow()" #bookingForm="ngForm" class="booking-section">
+        <h3>Book Your Stay</h3>
+        <!-- Date Selection -->
+        <div class="date-selection">
+          <div class="form-group">
+            <label><span class="icon">📅</span> Check-in Date</label>
+            <input type="date" [(ngModel)]="fromDate" (change)="onDateChange()" name="fromDate" required />
+          </div>
+
+          <div class="form-group">
+            <label><span class="icon">📅</span> Check-out Date</label>
+            <input type="date" [(ngModel)]="toDate" (change)="onDateChange()" name="toDate" required />
+          </div>
+        </div>
+
+        <div *ngIf="availableCount > 0" class="availability-info">
+          <p>✓ <strong>{{ availableCount }} rooms available</strong> for selected dates</p>
+        </div>
+        <div *ngIf="availableCount === 0" class="availability-info not-available">
+          <p>✕ <strong>Not available</strong> for selected dates</p>
+        </div>
+
+        <div class="booking-inputs">
+          <div class="form-group room-count-group">
+            <label>Number of Rooms to Book</label>
+            <div class="number-input-wrapper">
+              <input type="number" min="1" [max]="availableCount || 1" [(ngModel)]="roomsToBook"
+                (change)="chosenRooms = []" name="roomsToBook" placeholder="1" required />
+            </div>
+          </div>
+
+          <!-- Available Rooms Selection -->
+          <div *ngIf="selectedRooms && selectedRooms.length > 0" class="room-selection">
+            <label>Select {{ roomsToBook }} Room(s):</label>
+            <div class="room-grid">
+              <div *ngFor="let room of selectedRooms" class="room-option">
+                <input type="checkbox" [checked]="chosenRooms.includes(room)" (change)="toggleRoomSelection(room)"
+                  [id]="'room-' + room" [disabled]="chosenRooms.length >= roomsToBook && !chosenRooms.includes(room)" />
+                <label [for]="'room-' + room" class="room-label">{{ room }}</label>
+              </div>
+            </div>
+            <p *ngIf="chosenRooms.length > 0" class="selected-rooms">
+              Selected: {{ chosenRooms.join(', ') }}
+            </p>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-container">
+              <input type="checkbox" [(ngModel)]="includeFood" name="includeFood" />
+              <span class="checkmark"></span>
+              Include food (Billed separately)
+            </label>
+          </div>
+
+          <div *ngIf="includeFood" class="form-group slide-down">
+            <label>Food charge per room/day (₹)</label>
+            <input type="number" min="0" [(ngModel)]="foodPerRoom" name="foodPerRoom" class="form-input" />
+          </div>
+        </div>
+
+        <div class="price-breakdown">
+          <div class="price-summary">
+            <span class="label">Room subtotal ({{days}} days)</span>
+            <span class="amount">₹{{ (pg.price * (roomsToBook || 1) * days) | number }}</span>
+          </div>
+          <div class="price-summary total">
+            <span class="label">Total Price</span>
+            <span class="amount highlight">₹{{ (pg.price * (roomsToBook || 1) * days) | number }}</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary book-btn" [disabled]="!isLoggedIn() || availableCount === 0"
+          [title]="availableCount === 0 ? 'No rooms available for selected dates' : (isLoggedIn() ? 'Book now' : 'Login to book')">
+          <span class="btn-text">✓ Book Now</span>
+        </button>
+
+        <button *ngIf="!isLoggedIn()" type="button" class="btn btn-secondary auth-btn" routerLink="/auth">
+          🔐 Login to Book
+        </button>
+      </form>
+
+      <!-- Payment Form (after booking created) -->
+      <div *ngIf="bookingCreated" class="payment-section">
+        <h3>✓ Booking Created!</h3>
+        <p>Booking ID: {{ bookingCreated._id }}</p>
+        <div *ngIf="assignedRooms && assignedRooms.length > 0" class="assigned-rooms">
+          <strong>Assigned Rooms:</strong>
+          <p>{{ assignedRooms.join(', ') }}</p>
+        </div>
+        <app-payment-form [bookingId]="bookingCreated._id" [amount]="bookingAmount"
+          (paymentComplete)="onPaymentComplete($event)"></app-payment-form>
+        <button type="button" class="btn btn-secondary skip-btn" (click)="bookingCreated = null">Skip Payment for
+          now</button>
+      </div>
+
+      <!-- Share & Wishlist -->
+      <div class="actions-footer">
+        <button class="action-btn" (click)="shareProperty()">
+          📤 Share
+        </button>
+        <button class="action-btn">
+          ❤️ Wishlist
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!pg && errorMessage" class="loading">
+  <div class="error-box">
+    <h3>Error Loading PG</h3>
+    <pre>{{ errorMessage | json }}</pre>
+  </div>
+</div>

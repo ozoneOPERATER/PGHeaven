@@ -1,0 +1,224 @@
+header {
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+
+  &.sticky {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      text-decoration: none;
+      transition: all 0.3s ease;
+
+      .brand-text {
+        font-weight: 800;
+        background: linear-gradient(to right, #38bdf8, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
+
+      .icon {
+        font-size: 1.5rem;
+        color: #38bdf8;
+      }
+    }
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+
+    a {
+      color: #cbd5e1;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+
+      &:hover,
+      &.active {
+        color: #38bdf8;
+        border-bottom-color: #38bdf8;
+      }
+    }
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .profile-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.3s ease;
+
+      .user-avatar,
+      .user-avatar-img {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #1e293b;
+        color: #f8fafc;
+        font-weight: 600;
+        font-size: 1rem;
+        border: 2px solid #334155;
+        transition: all 0.3s ease;
+      }
+      .user-avatar-img {
+        object-fit: cover;
+      }
+
+      &:hover .user-avatar,
+      &.active .user-avatar {
+        background: #334155;
+        border-color: #38bdf8;
+        color: #38bdf8;
+      }
+    }
+
+    button.btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  .auth-links {
+    a {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    @media (max-width: 768px) {
+      display: flex;
+    }
+
+    span {
+      width: 24px;
+      height: 2px;
+      background: #cbd5e1;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    &.open {
+      span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      span:nth-child(2) {
+        opacity: 0;
+      }
+
+      span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    .header-container {
+      padding: 1rem;
+    }
+
+    .nav-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      gap: 0;
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+
+      &.open {
+        max-height: 400px;
+      }
+
+      a {
+        padding: 1rem 1.5rem;
+        display: block;
+        width: 100%;
+        border-bottom: 1px solid #1e293b;
+        border-left: 2px solid transparent;
+
+        &:hover,
+        &.active {
+          background: #1e293b;
+          border-left-color: #38bdf8;
+          border-bottom-color: #1e293b;
+        }
+      }
+    }
+
+    .header-controls {
+      gap: 1rem;
+    }
+
+    .user-menu {
+      flex-direction: column;
+      gap: 0.5rem;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

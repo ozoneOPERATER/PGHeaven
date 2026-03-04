@@ -1,0 +1,253 @@
+<div class="user-dashboard">
+  <div class="dashboard-header">
+    <h1>📅 My Dashboard</h1>
+    <p>Manage your bookings, orders, and more</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'bookings'"
+      (click)="activeTab = 'bookings'"
+    >
+      🏠 My Bookings
+    </button>
+  </div>
+
+  <!-- Quick Links to Other Pages -->
+  <div class="quick-links">
+    <a routerLink="/" class="quick-link-btn">🏠 Book Room</a>
+    <a routerLink="/help/service" class="quick-link-btn">🔧 Request Service</a>
+    <a routerLink="/help/complaint" class="quick-link-btn">⚠️ Report Issue</a>
+  </div>
+
+  <!-- Tab Content -->
+  <div *ngIf="activeTab === 'bookings'">
+    <!-- Empty State -->
+    <div *ngIf="bookings.length === 0" class="empty-state">
+      <div class="empty-icon">🏠</div>
+      <h2>No Bookings Yet</h2>
+      <p>You haven't made any property bookings yet. Start exploring available properties!</p>
+      <a routerLink="/" class="btn btn-primary">Browse Properties</a>
+    </div>
+
+    <!-- Food ready notification -->
+    <ng-container *ngFor="let b of filteredBookings">
+      <div *ngIf="b.foodNotified && !b.foodBillPaid" class="food-notice">
+        <div class="notice-text">
+          🍽️ Food for your room {{ (b.selectedRooms || b.roomDetails?.assignedRooms)?.[0] || 'N/A' }} is ready.
+          <button class="btn btn-link" (click)="checkoutBooking(b._id)">View / pay bill</button>
+        </div>
+      </div>
+    </ng-container>
+
+  <!-- Invoice/Bill Display -->
+  <div *ngIf="invoice" class="invoice-card">
+    <div class="invoice-header">
+      <h2>🧾 Your Bill</h2>
+      <span [ngClass]="['status-badge', 'status-' + invoice.status.toLowerCase()]">
+        {{ invoice.status }}
+      </span>
+    </div>
+
+    <div *ngIf="customer" class="customer-details">
+      <h3>Customer Details</h3>
+      <p><strong>Name:</strong> {{ customer.name }}</p>
+      <p><strong>Email:</strong> {{ customer.email }}</p>
+      <p><strong>Room Number:</strong> {{ roomNumber }}</p>
+    </div>
+
+    <div class="invoice-items">
+      <div *ngFor="let item of invoice.items" class="invoice-item">
+        <span>{{ item.description }}</span>
+        <span>₹{{ item.amount | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <div class="invoice-total">
+      <span>Total Amount:</span>
+      <span>₹{{ invoice.total | number:'1.2-2' }}</span>
+    </div>
+
+    <div *ngIf="invoice.status !== 'Paid'" class="amount-due">
+      <span>Amount Due:</span>
+      <span>₹{{ (invoice.total - (invoice.paid || 0)) | number:'1.2-2' }}</span>
+    </div>
+
+    <div *ngIf="invoice.paid > 0" class="payment-info">
+      <span>Amount Paid:</span>
+      <span>₹{{ invoice.paid | number:'1.2-2' }}</span>
+    </div>
+
+    <div *ngIf="invoice.paymentMethod" class="payment-info">
+      <span>Payment Method:</span>
+      <span>{{ invoice.paymentMethod }}</span>
+    </div>
+
+    <!-- payment form not shown when invoice has been paid -->
+    <div *ngIf="showPaymentForm && invoice.status !== 'Paid'" class="payment-form">
+      <div class="form-section">
+        <label>Amount Due:</label>
+        <input type="text" [value]="'₹' + (invoice.total - (invoice.paid || 0) | number:'1.2-2')" readonly />
+      </div>
+
+      <div class="form-section">
+        <label>Payment Method:</label>
+        <select [(ngModel)]="paymentMethod">
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+          <option value="upi">UPI</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" (click)="submitPayment()">Pay Now</button>
+    </div>
+
+    <button class="btn btn-secondary" (click)="invoice = null; showPaymentForm = false;">Close Bill</button>
+  </div>
+
+  <!-- Bookings List -->
+  <div *ngIf="bookings.length > 0 && !invoice" class="bookings-container">
+    <div class="filter-section">
+      <button 
+        *ngFor="let status of statuses"
+        [class.active]="selectedStatus === status"
+        (click)="filterByStatus(status)"
+        class="filter-btn"
+      >
+        {{ status }}
+      </button>
+    </div>
+
+    <div class="bookings-list">
+      <div *ngFor="let booking of filteredBookings" class="booking-card">
+        <div class="booking-header">
+          <div class="booking-title">
+            <h3>{{ booking.pg?.name }}</h3>
+            <p class="location">📍 {{ booking.pg?.location }}</p>
+          </div>
+          <span [ngClass]="['status-badge', 'status-' + booking.status.toLowerCase()]">
+            {{ booking.status }}
+          </span>
+        </div>
+
+        <div class="booking-details">
+          <div class="detail-item">
+            <span class="detail-label">🛏️ Rooms Booked</span>
+            <span class="detail-value">{{ booking.roomsBooked }} Room(s)</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">💰 Total Price</span>
+            <span class="detail-value">₹{{ (booking.amountDue ? booking.amountDue : (booking.pg?.price * booking.roomsBooked * getDurationInDays(booking))) | number:'1.0-0' }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">📅 Booking Date</span>
+            <span class="detail-value">{{ booking.createdAt | date: 'MMM dd, yyyy' }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">⏰ Duration</span>
+            <span class="detail-value">{{ getDurationInDays(booking) }} day(s)</span>
+          </div>
+        </div>
+
+        <div class="booking-actions">
+          <button 
+            *ngIf="booking.status === 'Pending'" 
+            class="btn btn-secondary"
+            (click)="cancelBooking(booking._id)"
+          >
+            ✕ Cancel Booking
+          </button>
+          <button
+            class="btn btn-primary"
+            (click)="checkoutBooking(booking._id)"
+          >
+            💳 {{ booking.paymentStatus === 'Paid' ? 'View Bill' : 'Checkout & Pay' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            routerLink="/pg/{{ booking.pg?._id }}"
+          >
+            👁️ View Property
+          </button>
+          <button
+            class="btn btn-primary"
+            routerLink="/help/order"
+            [queryParams]="{ bookingId: booking._id, room: (booking.selectedRooms || booking.roomDetails?.assignedRooms)?.[0] }"
+          >
+            🍽️ Order Food
+          </button>
+          <button
+            class="btn btn-info"
+            (click)="toggleRoomDetails(booking._id)"
+          >
+            🏠 {{ isRoomDetailsVisible(booking._id) ? 'Hide Room' : 'Your Room' }}
+          </button>
+        </div>
+
+        <!-- Room Details Section -->
+        <div *ngIf="isRoomDetailsVisible(booking._id)" class="room-details-section">
+          <h4>🏠 Your Booked Rooms</h4>
+          
+          <div class="room-info">
+            <div class="room-item">
+              <span class="label">📍 Property:</span>
+              <span class="value">{{ booking.pg?.name }}</span>
+            </div>
+            <div class="room-item">
+              <span class="label">📍 Location:</span>
+              <span class="value">{{ booking.pg?.location }}</span>
+            </div>
+            <div class="room-item">
+              <span class="label">💵 Price/Day:</span>
+              <span class="value">₹{{ booking.pg?.price | number }}</span>
+            </div>
+            <div class="room-item">
+              <span class="label">🛏️ Total Rooms:</span>
+              <span class="value">{{ booking.roomsBooked }} Room(s)</span>
+            </div>
+            <div class="room-item">
+              <span class="label">📅 Check-in:</span>
+              <span class="value">{{ booking.fromDate | date: 'MMM dd, yyyy' }}</span>
+            </div>
+            <div class="room-item">
+              <span class="label">📅 Check-out:</span>
+              <span class="value">{{ booking.toDate | date: 'MMM dd, yyyy' }}</span>
+            </div>
+            <div class="room-item">
+              <span class="label">⏰ Duration:</span>
+              <span class="value">{{ getDurationInDays(booking) }} day(s)</span>
+            </div>
+          </div>
+
+          <div class="rooms-list">
+            <h5>🚪 Room Numbers:</h5>
+            <div class="room-badges">
+              <span *ngFor="let room of (booking.selectedRooms || booking.roomDetails?.assignedRooms || [])" class="room-badge">
+                {{ room }}
+              </span>
+            </div>
+          </div>
+
+          <div class="total-section">
+            <span class="label">💰 Total Amount:</span>
+            <span class="total-value">₹{{ (booking.amountDue ? booking.amountDue : (booking.pg?.price * booking.roomsBooked * getDurationInDays(booking))) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredBookings.length === 0" class="empty-state">
+      <p>No bookings found for {{ selectedStatus }} status</p>
+    </div>
+  </div>
+
+  <!-- Order Food Tab -->
+  <div *ngIf="isOrderTab()">
+    <app-customer-order [bookingId]="selectedBookingForOrder"></app-customer-order>
+  </div>
+</div>

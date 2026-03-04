@@ -1,0 +1,150 @@
+<div class="customer-order-container">
+  <div class="order-page-header">
+    <div class="icon-circle">
+      <span class="icon">🍔</span>
+    </div>
+    <h2>Order Delicious Food</h2>
+    <p>Browse our menu and place a room-service order</p>
+  </div>
+
+  <!-- Booking Info When Preselected -->
+  <div *ngIf="selectedBookingId && selectedRoom" class="info-banner booking-banner">
+    <div class="banner-icon">ℹ️</div>
+    <div class="banner-content">
+      <strong>Ordering for Room:</strong> {{ selectedRoom }}
+      <span class="muted-text">(Booking: {{ selectedBookingId | slice:0:8 }})</span>
+    </div>
+  </div>
+
+  <!-- Approval Warning -->
+  <div *ngIf="selectedBookingId && selectedBookingStatus && selectedBookingStatus !== 'Approved'"
+    class="info-banner warning-banner">
+    <div class="banner-icon">⚠️</div>
+    <div class="banner-content">
+      {{ getOrderingMessage() }}
+    </div>
+  </div>
+
+  <div class="order-layout">
+    <!-- Left Column: Menu Browsing -->
+    <div class="menu-column">
+      <div class="menu-card">
+        <h3>📋 Browse Menu</h3>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+          <button *ngFor="let cat of categories" [class.active]="activeCategory === cat" (click)="activeCategory = cat"
+            class="tab-btn">
+            {{ cat | titlecase }}
+          </button>
+        </div>
+
+        <!-- Menu Items for Active Category -->
+        <div class="menu-section" *ngIf="menu[activeCategory]">
+          <div class="items-grid">
+            <div *ngFor="let item of menu[activeCategory]" class="menu-item-card">
+              <div class="item-info">
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-price">₹{{ item.price }}</span>
+              </div>
+              <button type="button" (click)="addItem(item)" class="btn-add">
+                + Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Cart & Checkout -->
+    <div class="cart-column">
+      <div class="cart-card">
+        <h3>🛒 Your Order</h3>
+
+        <!-- Empty Cart State -->
+        <div *ngIf="selectedItems.length === 0" class="empty-cart">
+          <span class="empty-icon">🍽️</span>
+          <p>Your cart is empty. Add some tasty items from the menu!</p>
+        </div>
+
+        <!-- Active Cart -->
+        <div *ngIf="selectedItems.length > 0" class="active-cart">
+
+          <div class="booking-config">
+            <div class="form-group">
+              <label for="bookingSelect">Attach to Booking (optional)</label>
+              <select id="bookingSelect" [(ngModel)]="selectedBookingId" (change)="onBookingChange()">
+                <option [ngValue]="null">-- Select a Booking --</option>
+                <option *ngFor="let b of bookings" [ngValue]="b._id">
+                  {{ b.pg?.name || 'PG' }} ({{ b.roomsBooked }} rooms)
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group" *ngIf="selectedBookingId && bookingRooms && bookingRooms.length > 0">
+              <label for="roomSelect">Deliver To Room</label>
+              <select id="roomSelect" [(ngModel)]="selectedRoom" (change)="loadRoomOrders()">
+                <option [ngValue]="null">-- Auto-assign / None --</option>
+                <option *ngFor="let r of bookingRooms" [value]="r">{{ r }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="cart-items">
+            <div *ngFor="let item of selectedItems" class="cart-item">
+              <div class="cart-item-header">
+                <span class="cart-item-name">{{ item.name }}</span>
+                <button type="button" (click)="removeItem(item.name)" class="btn-remove">✕</button>
+              </div>
+              <div class="cart-item-controls">
+                <span class="cart-item-price">₹{{ item.price }}</span>
+                <div class="qty-control">
+                  <label>Qty:</label>
+                  <div class="qty-stepper">
+                    <button type="button" class="btn-step" (click)="decreaseQty(item.name)">-</button>
+                    <input type="number" min="1" [value]="item.qty"
+                      (change)="updateQty(item.name, $any($event.target).value)" class="qty-input" />
+                    <button type="button" class="btn-step" (click)="increaseQty(item.name)">+</button>
+                  </div>
+                </div>
+                <span class="cart-item-subtotal">₹{{ item.price * item.qty }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-section">
+            <span class="total-label">Subtotal</span>
+            <span class="total-amount">₹{{ totalPrice }}</span>
+          </div>
+
+          <!-- Room Orders Snippet -->
+          <div *ngIf="roomOrders && roomOrders.length > 0" class="previous-orders">
+            <h4>Existing unpaid orders for {{ selectedRoom }}</h4>
+            <div class="previous-order-list">
+              <div *ngFor="let o of roomOrders" class="previous-order-row">
+                <span>#{{ o._id | slice:0:6 }} ({{ o.createdAt | date:'shortTime' }})</span>
+                <span>₹{{ o.total || 0 }}</span>
+              </div>
+            </div>
+            <div class="previous-orders-total">
+              <strong>Previous Total: ₹{{ roomOrdersTotal }}</strong>
+            </div>
+          </div>
+
+          <button type="button" (click)="submit()" [disabled]="submitting || !isOrderingAllowed()"
+            class="btn-place-order"
+            [title]="!isOrderingAllowed() ? 'Booking must be Approved before ordering food' : ''">
+            <span *ngIf="!submitting">Place Order — ₹{{ totalPrice }}</span>
+            <span *ngIf="submitting">Placing Order...</span>
+          </button>
+        </div>
+
+        <div class="status-message" [class.success]="message.includes('successfully')" *ngIf="message">
+          <span class="status-icon">{{ message.includes('successfully') ? '✓' : '✕' }}</span>
+          <p>{{ message }}</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

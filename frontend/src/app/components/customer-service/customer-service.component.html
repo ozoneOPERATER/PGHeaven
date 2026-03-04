@@ -1,0 +1,61 @@
+<div class="customer-service-container">
+  <div class="service-card">
+    <div class="card-header">
+      <div class="icon-circle">
+        <span class="icon">🛠️</span>
+      </div>
+      <h2>Request a Service</h2>
+      <p>Need help or maintenance? Let us know below.</p>
+    </div>
+
+    <form (ngSubmit)="submit()" class="service-form" #serviceForm="ngForm">
+
+      <!-- Service Type Dropdown -->
+      <div class="form-group">
+        <label>Service Type <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <select name="title" [(ngModel)]="model.title" required>
+            <option value="" disabled>Select a service category</option>
+            <option value="Plumbing Issue">Plumbing Issue</option>
+            <option value="Electrical Repair">Electrical Repair</option>
+            <option value="Cleaning Service">Cleaning Service</option>
+            <option value="Internet / WiFi Issue">Internet / WiFi Issue</option>
+            <option value="Other">Other / General</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Description textarea -->
+      <div class="form-group">
+        <label>Description Details <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <textarea name="description" [(ngModel)]="model.description" rows="5"
+            placeholder="Please carefully describe the issue you are facing..." required>
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Preferred Date input -->
+      <div class="form-group">
+        <label>Preferred Date (Optional)</label>
+        <div class="input-wrapper">
+          <input type="date" name="preferredDate" [(ngModel)]="model.preferredDate" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-btn" [disabled]="submitting || !serviceForm.valid">
+          <span *ngIf="!submitting">Submit Request</span>
+          <span *ngIf="submitting" class="loader-text">Submitting...</span>
+        </button>
+      </div>
+
+      <!-- Status Message -->
+      <div *ngIf="message" class="status-message" [ngClass]="{'success': !message.includes('failed')}">
+        <span class="status-icon">{{ !message.includes('failed') ? '✓' : '✕' }}</span>
+        <p>{{ message }}</p>
+      </div>
+
+    </form>
+  </div>
+</div>

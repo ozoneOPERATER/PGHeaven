@@ -1,0 +1,65 @@
+<div class="pg-list-container">
+  <div class="list-header">
+    <div class="container">
+      <h1>🏠 Find Your Perfect PG</h1>
+      <p>Browse through verified accommodations near you</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="filters">
+      <div class="filter-group">
+        <input type="text" placeholder="🔍 Search by name..." [(ngModel)]="searchName" name="searchName"
+          (input)="filterPGs()" class="filter-input" />
+      </div>
+      <div class="filter-group">
+        <input type="text" placeholder="📍 Search by location..." [(ngModel)]="searchLocation" name="searchLocation"
+          (input)="filterPGs()" class="filter-input" />
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="priceRange" name="priceRange" (change)="filterPGs()" class="filter-input">
+          <option value="">₹ Price Range (Any)</option>
+          <option value="0-5000">₹0 - ₹5,000</option>
+          <option value="5000-10000">₹5,000 - ₹10,000</option>
+          <option value="10000-15000">₹10,000 - ₹15,000</option>
+          <option value="15000+">₹15,000+</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" (click)="resetFilters()">Reset</button>
+    </div>
+
+    <div *ngIf="filteredPgs.length === 0" class="no-results">
+      <p>😔 No PGs found. Try adjusting your filters.</p>
+    </div>
+
+    <div class="grid">
+      <div *ngFor="let pg of filteredPgs" class="pg-card">
+        <div class="card-image">
+          <img [src]="pg.images?.[0] || 'https://source.unsplash.com/400x300/?room'" alt="{{pg.name}}">
+          <div class="card-badge">
+            <span *ngIf="(pg.availableRooms || 0) > 0" class="available">Total: {{ pg.totalRooms || pg.availableRooms ||
+              1 }}, Available: {{ pg.availableRooms || 0 }}</span>
+            <span *ngIf="(pg.availableRooms || 0) === 0" class="not-available">Not available</span>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3>{{ pg.name }}</h3>
+          <p class="location">📍 {{ pg.location }}</p>
+          <div class="rating" *ngIf="pg.averageRating">
+            <span class="stars">{{ getStars(pg.averageRating) }}</span>
+            <span class="rating-text">{{ (pg.averageRating || 0 | number:'1.1-1') }} ({{ pg.ratings?.length || 0 }}
+              reviews)</span>
+          </div>
+          <p class="description">{{ pg.description | slice:0:80 }}...</p>
+          <div class="card-footer">
+            <div class="price">
+              <span class="amount">₹{{ pg.price }}</span>
+              <span class="period">/day</span>
+            </div>
+            <a [routerLink]="['/pg', pg._id]" class="btn btn-primary">View Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

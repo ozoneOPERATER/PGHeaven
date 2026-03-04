@@ -1,0 +1,47 @@
+<div class="customer-complaint-container">
+  <div class="complaint-card">
+    <div class="card-header">
+      <div class="icon-circle">
+        <span class="icon">⚠️</span>
+      </div>
+      <h2>Report an Issue</h2>
+      <p>Please describe the problem so we can resolve it.</p>
+    </div>
+
+    <form (ngSubmit)="submit()" class="complaint-form" #complaintForm="ngForm">
+
+      <!-- Subject Input -->
+      <div class="form-group">
+        <label>Subject <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input type="text" name="subject" [(ngModel)]="model.subject"
+            placeholder="E.g., Noisy neighbors, Broken AC..." required />
+        </div>
+      </div>
+
+      <!-- Message textarea -->
+      <div class="form-group">
+        <label>Message / Details <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <textarea name="message" [(ngModel)]="model.message" rows="5"
+            placeholder="Please provide as much detail as possible..." required>
+          </textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-btn" [disabled]="submitting || !complaintForm.valid">
+          <span *ngIf="!submitting">Submit Complaint</span>
+          <span *ngIf="submitting" class="loader-text">Submitting...</span>
+        </button>
+      </div>
+
+      <!-- Status Message -->
+      <div *ngIf="message" class="status-message" [ngClass]="{'success': !message.includes('failed')}">
+        <span class="status-icon">{{ !message.includes('failed') ? '✓' : '✕' }}</span>
+        <p>{{ message }}</p>
+      </div>
+
+    </form>
+  </div>
+</div>

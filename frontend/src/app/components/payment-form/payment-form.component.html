@@ -1,0 +1,129 @@
+<div class="payment-form-container">
+  <div class="payment-header">
+    <h3>💳 Payment Details</h3>
+    <p class="amount-display">Amount Due: <span class="amount">₹{{ amount | number }}</span></p>
+  </div>
+
+  <div *ngIf="paymentSuccess" class="success-message">
+    <div class="success-icon">✓</div>
+    <h4>Payment Successful!</h4>
+    <p>Your booking has been confirmed. Check your email for confirmation.</p>
+  </div>
+
+  <div *ngIf="!paymentSuccess" class="payment-methods">
+    <div class="method-selector">
+      <label class="method-option">
+        <input type="radio" [(ngModel)]="paymentMethod" value="card" />
+        <span>💳 Debit/Credit Card</span>
+      </label>
+      <label class="method-option">
+        <input type="radio" [(ngModel)]="paymentMethod" value="upi" />
+        <span>📱 UPI</span>
+      </label>
+      <label class="method-option">
+        <input type="radio" [(ngModel)]="paymentMethod" value="netbanking" />
+        <span>🏦 Net Banking</span>
+      </label>
+    </div>
+
+    <!-- Card Payment Form -->
+    <div *ngIf="paymentMethod === 'card'" class="payment-section card-section">
+      <h4>Card Details</h4>
+      
+      <div class="form-group">
+        <label>Cardholder Name</label>
+        <input 
+          type="text" 
+          [(ngModel)]="cardName" 
+          placeholder="John Doe"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Card Number</label>
+        <input 
+          type="text" 
+          (change)="onCardNumberChange($event)"
+          [value]="cardNumber"
+          placeholder="1234 5678 9012 3456"
+          maxlength="16"
+          class="form-input"
+        />
+        <small>16 digits</small>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Expiry Date</label>
+          <input 
+            type="text" 
+            (change)="onExpiryChange($event)"
+            [value]="expiryDate"
+            placeholder="MM/YY"
+            maxlength="5"
+            class="form-input"
+          />
+        </div>
+        <div class="form-group half">
+          <label>CVV</label>
+          <input 
+            type="password" 
+            (change)="onCvvChange($event)"
+            [value]="cvv"
+            placeholder="123"
+            maxlength="3"
+            class="form-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- UPI Payment Form -->
+    <div *ngIf="paymentMethod === 'upi'" class="payment-section upi-section">
+      <h4>UPI Payment</h4>
+      <div class="form-group">
+        <label>UPI ID</label>
+        <input 
+          type="email" 
+          [(ngModel)]="upiId" 
+          placeholder="username@bankname"
+          class="form-input"
+        />
+        <small>Example: john@upi or user@okhdfcbank</small>
+      </div>
+    </div>
+
+    <!-- Net Banking Form -->
+    <div *ngIf="paymentMethod === 'netbanking'" class="payment-section netbanking-section">
+      <h4>Net Banking</h4>
+      <p>You will be redirected to your bank's website to complete the payment securely.</p>
+      <div class="banks-list">
+        <span class="bank-badge">HDFC Bank</span>
+        <span class="bank-badge">ICICI Bank</span>
+        <span class="bank-badge">Axis Bank</span>
+        <span class="bank-badge">SBI</span>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+      ⚠️ {{ errorMessage }}
+    </div>
+
+    <!-- Submit Button -->
+    <button 
+      (click)="submitPayment()"
+      [disabled]="!isFormValid() || loading"
+      class="pay-button"
+    >
+      <span *ngIf="!loading">Pay ₹{{ amount | number }}</span>
+      <span *ngIf="loading">Processing... ⏳</span>
+    </button>
+  </div>
+
+  <div *ngIf="paymentSuccess" class="payment-footer">
+    <p class="booking-id">Booking ID: <strong>{{ bookingId.substring(0, 12) }}</strong></p>
+    <button (click)="reset()" class="reset-button">Make Another Payment</button>
+  </div>
+</div>

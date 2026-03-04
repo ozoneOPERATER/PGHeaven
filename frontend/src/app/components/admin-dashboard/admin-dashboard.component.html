@@ -1,0 +1,117 @@
+<div class="admin-dashboard">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="banner-content">
+      <h1>Hello, {{ user?.name || 'Administrator' }} 👋</h1>
+      <p>Here's what's happening with PG Heaven today.</p>
+    </div>
+    <div class="banner-illustration">
+      <!-- Decoration or illustration could go here -->
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon-wrapper blue">
+        <span class="stat-icon">🏢</span>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Total PGs</p>
+        <p class="stat-value">{{ stats?.total || 0 }}</p>
+      </div>
+      <div class="stat-trend positive">
+        <span class="trend-icon">↑</span> 12% this month
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon-wrapper green">
+        <span class="stat-icon">👥</span>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Total Users</p>
+        <p class="stat-value">{{ stats?.totalUsers || 0 }}</p>
+      </div>
+      <div class="stat-trend positive">
+        <span class="trend-icon">↑</span> {{ stats?.newUsers || 0 }} new users
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon-wrapper orange">
+        <span class="stat-icon">📅</span>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Total Bookings</p>
+        <p class="stat-value">{{ stats?.totalBookings || 0 }}</p>
+      </div>
+      <div class="stat-trend neutral">
+        <span class="trend-icon">•</span> {{ stats?.pendingBookings || 0 }} pending
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon-wrapper purple">
+        <span class="stat-icon">⭐</span>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Average Rating</p>
+        <p class="stat-value">{{ (stats?.averageRating || 0) | number:'1.1-1' }}</p>
+      </div>
+      <div class="stat-trend default">
+        <span class="trend-icon">∑</span> {{ stats?.totalRatings || 0 }} total ratings
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="dashboard-content">
+
+    <!-- Quick Actions as Interactive Cards -->
+    <div class="content-section quick-actions-section">
+      <div class="section-header">
+        <h2>⚡ Quick Actions</h2>
+      </div>
+      <div class="quick-actions-grid">
+        <a routerLink="/admin/pgs/add" class="action-card add-pg">
+          <div class="action-icon">➕</div>
+          <div class="action-text">Add New PG</div>
+        </a>
+        <a routerLink="/admin/pgs" class="action-card manage-pgs">
+          <div class="action-icon">📋</div>
+          <div class="action-text">Manage PGs</div>
+        </a>
+        <a routerLink="/admin/settings" class="action-card settings">
+          <div class="action-icon">⚙️</div>
+          <div class="action-text">Settings</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activities Timeline -->
+    <div class="content-section activities-section">
+      <div class="section-header">
+        <h2>⏱️ Recent Activities</h2>
+        <button class="btn-text">View All</button>
+      </div>
+      <div class="activity-timeline">
+        <div class="activity-item" *ngFor="let activity of activities">
+          <div class="timeline-dot"></div>
+          <div class="activity-icon">{{ activity.icon }}</div>
+          <div class="activity-details">
+            <p class="activity-title">{{ activity.title }}</p>
+            <p class="activity-time">{{ getTimeAgo(activity.time) }}</p>
+          </div>
+        </div>
+
+        <!-- Empty state block if no activities exist -->
+        <div class="no-activity" *ngIf="!activities || activities.length === 0">
+          <p>No recent activities found.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

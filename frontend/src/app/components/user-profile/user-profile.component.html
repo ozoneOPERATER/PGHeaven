@@ -1,0 +1,105 @@
+<div class="profile-wrapper">
+  <div class="profile-container">
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <!-- Profile Header -->
+      <div class="profile-header-banner"></div>
+
+      <!-- Profile Image -->
+      <div class="profile-image-container">
+        <img [src]="getProfileImage()" alt="Profile" class="profile-image">
+        <div class="badge-role">{{ isAdmin() ? '👑 Admin' : '👤 User' }}</div>
+        <!-- hidden file input triggered by button -->
+        <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)">
+        <button class="change-photo-btn" (click)="fileInput.click()">
+          📷 Change Photo
+        </button>
+        <br>
+        <div *ngIf="selectedFile" class="photo-actions">
+          <button class="btn btn-primary btn-action" (click)="uploadPhoto()">💾 Save Photo</button>
+          <button class="btn btn-secondary btn-action" (click)="cancelSelected()">✖ Cancel</button>
+        </div>
+      </div>
+
+      <!-- Profile Info -->
+      <div class="profile-info">
+        <h1 class="profile-name">{{ profile.name }}</h1>
+        
+        <div class="profile-details">
+          <div class="detail-item">
+            <span class="detail-icon">📧</span>
+            <span class="detail-text">{{ profile.email }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="profile-actions">
+          <button class="btn btn-primary btn-action" (click)="openEditModal()">
+            <span>✏️</span> Edit Profile
+          </button>
+          <button class="btn btn-secondary btn-action" (click)="openPasswordModal()">
+            <span>🔐</span> Change Password
+          </button>
+          <button class="btn btn-secondary btn-action" (click)="logout()">
+            <span>🔓</span> Logout
+          </button>
+          <button class="btn btn-danger btn-action" (click)="deleteAccount()">
+            <span>🗑️</span> Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" *ngIf="showEditModal" [@slideIn]>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Edit Profile</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        <form (ngSubmit)="updateProfile()" class="profile-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" [(ngModel)]="profile.name" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" [(ngModel)]="profile.email" name="email" class="form-control" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" *ngIf="showPasswordModal" [@slideIn]>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Change Password</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        <form (ngSubmit)="changePassword()" class="password-form">
+          <div class="form-group">
+            <label for="oldPassword">Current Password</label>
+            <input type="password" id="oldPassword" [(ngModel)]="passwordData.oldPassword" name="oldPassword" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" [(ngModel)]="passwordData.newPassword" name="newPassword" class="form-control" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-link" (click)="forgotPassword()">Forgot Password?</button>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" *ngIf="showEditModal || showPasswordModal" (click)="closeModal()"></div>
+  </div>
+</div>

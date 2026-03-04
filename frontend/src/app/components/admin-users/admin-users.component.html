@@ -1,0 +1,107 @@
+<div class="admin-users">
+  <div class="page-header">
+    <h1>👥 Manage Users</h1>
+    <p>View and manage all registered users</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Users</span>
+        <span class="stat-value">{{ getUserStats().total }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🛡️</div>
+      <div class="stat-info">
+        <span class="stat-label">Admins</span>
+        <span class="stat-value">{{ getUserStats().admins }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📍</div>
+      <div class="stat-info">
+        <span class="stat-label">Regular Users</span>
+        <span class="stat-value">{{ getUserStats().regularUsers }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <button *ngFor="let role of roles" [class.active]="selectedRole === role" (click)="filterByRole(role)"
+      class="filter-btn">
+      {{ role }}
+    </button>
+  </div>
+
+  <div *ngIf="filteredUsers.length === 0" class="empty-state">
+    <div class="empty-icon">👥</div>
+    <h3>No Users Found</h3>
+    <p>There are no users matching the selected role.</p>
+  </div>
+
+  <div *ngIf="filteredUsers.length > 0" class="user-data-grid">
+    <div class="grid-header">
+      <div class="col-user">User Info</div>
+      <div class="col-role">Role</div>
+      <div class="col-joined">Joined Date</div>
+      <div class="col-actions text-right">Actions</div>
+    </div>
+
+    <div class="grid-body">
+      <div *ngFor="let user of filteredUsers" class="grid-row">
+
+        <!-- User Info -->
+        <div class="grid-cell col-user">
+          <div class="user-block">
+            <div class="user-avatar" [ngClass]="user.role === 'admin' ? 'admin-avatar' : 'user-avatar'">
+              {{ user.name?.charAt(0) || '?' | uppercase }}
+            </div>
+            <div class="user-details">
+              <span class="name">
+                {{ user.name || 'Unknown' }}
+                <span *ngIf="user.role === 'admin'" class="admin-badge-icon" title="Administrator">🛡️</span>
+              </span>
+              <span class="email">{{ user.email || 'No email provided' }}</span>
+              <span class="user-id">ID: {{ (user._id || user.id)?.substring(0, 8) | uppercase }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="grid-cell col-role">
+          <div class="role-wrapper">
+            <select [value]="user.role" (change)="changeRole(user._id || user.id, $event)" class="role-select"
+              [ngClass]="user.role">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Joined Date -->
+        <div class="grid-cell col-joined">
+          <div class="date-block">
+            <span class="date-icon">📅</span>
+            <span class="date-text">{{ user.createdAt | date: 'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="grid-cell col-actions text-right">
+          <div class="action-buttons">
+            <button class="btn-action btn-delete" (click)="deleteUser(user._id || user.id)"
+              [disabled]="user.role === 'admin'"
+              [title]="user.role === 'admin' ? 'Cannot delete admin users' : 'Delete user'">
+              <span class="icon">🗑️</span> Delete
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+<div class="admin-orders">
+  <div class="page-header">
+    <h1>🍽️ Manage Orders</h1>
+    <p>View and manage all food orders</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Orders</span>
+        <span class="stat-value">{{ getStatusStats().total }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-info">
+        <span class="stat-label">Pending</span>
+        <span class="stat-value">{{ getStatusStats().pending }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">👨‍🍳</div>
+      <div class="stat-info">
+        <span class="stat-label">Prepared</span>
+        <span class="stat-value">{{ getStatusStats().prepared }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <span class="stat-label">Delivered</span>
+        <span class="stat-value">{{ getStatusStats().delivered }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <div class="search-input-wrapper">
+      <input type="text" placeholder="🔍 Search by user name, order ID, or room number..." [(ngModel)]="searchQuery"
+        (input)="onSearchChange(searchQuery)" class="search-input" />
+      <span class="search-count" *ngIf="searchQuery">{{ filteredOrders.length }} result(s)</span>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <button *ngFor="let status of statuses" [class.active]="selectedStatus === status" (click)="filterByStatus(status)"
+      class="filter-btn">
+      {{ status }}
+    </button>
+  </div>
+
+  <div *ngIf="filteredOrders.length === 0" class="empty-state">
+    <div class="empty-icon">🍽️</div>
+    <h3>No Orders Found</h3>
+    <p>We couldn't find any food orders matching your criteria.</p>
+  </div>
+
+  <div *ngIf="filteredOrders.length > 0" class="order-data-grid">
+    <div class="grid-header">
+      <div class="col-order">Order Info</div>
+      <div class="col-user">Customer & Location</div>
+      <div class="col-items">Items Ordered</div>
+      <div class="col-status">Status</div>
+      <div class="col-actions text-right">Actions</div>
+    </div>
+
+    <div class="grid-body">
+      <div *ngFor="let o of filteredOrders" class="grid-row">
+
+        <!-- Order Info -->
+        <div class="grid-cell col-order">
+          <div class="order-block">
+            <span class="order-id">#{{ o._id?.substring(0, 8) | uppercase }}</span>
+            <span class="order-total">₹{{ o.total || 0 }}</span>
+            <span class="order-date" *ngIf="o.createdAt">{{ o.createdAt | date: 'MMM dd, HH:mm' }}</span>
+          </div>
+        </div>
+
+        <!-- Customer & Location -->
+        <div class="grid-cell col-user">
+          <div class="user-block">
+            <div class="user-avatar">{{ (o.user?.name?.charAt(0) || o.booking?.user?.name?.charAt(0) || '?') | uppercase
+              }}</div>
+            <div class="user-details">
+              <span class="name">{{ o.user?.name || 'Unknown' }}</span>
+              <span class="location">
+                {{ o.pgName || 'N/A' }}
+                <span *ngIf="o.pgLocation" class="pg-loc"> · {{ o.pgLocation }}</span>
+                <span class="room-tag" *ngIf="o.roomNumber">
+                  (Rm: {{ o.roomNumber }})
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Ordered -->
+        <div class="grid-cell col-items">
+          <div class="items-summary" *ngIf="o.items?.length; else noItems">
+            <div *ngFor="let item of o.items" class="item-tag"
+              [title]="item.name + ' x' + item.quantity + ' (₹' + item.price + ')' ">
+              <span class="item-qty">{{ item.quantity }}x</span> {{ item.name }}
+            </div>
+          </div>
+          <ng-template #noItems><span class="no-items">No items recorded</span></ng-template>
+        </div>
+
+        <!-- Status -->
+        <div class="grid-cell col-status">
+          <span [ngClass]="['status-badge', 'status-' + (o.status || 'pending').toLowerCase()]">
+            {{ o.status || 'Pending' }}
+          </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="grid-cell col-actions text-right">
+          <div class="action-buttons">
+            <select class="status-select" [value]="o.status" (change)="updateStatus(o._id, $event)"
+              [ngClass]="'select-' + (o.status || 'pending').toLowerCase()">
+              <option value="Pending">Pending</option>
+              <option value="Prepared">Prepared</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

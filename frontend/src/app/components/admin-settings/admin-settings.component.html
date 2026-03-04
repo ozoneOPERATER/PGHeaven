@@ -1,0 +1,162 @@
+<div class="admin-settings">
+  <div class="page-header">
+    <h1>⚙️ System Settings</h1>
+    <p>Configure application behaviors, appearance, and maintenance preferences.</p>
+  </div>
+
+  <div class="settings-container">
+    <form (ngSubmit)="saveSettings()" #settingsForm="ngForm" class="settings-form">
+
+      <!-- General Settings -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="icon">🎨</span>
+          <div class="header-text">
+            <h2>General & Appearance</h2>
+            <p>Basic application settings</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-group box-input">
+            <label for="app-name">Application Name</label>
+            <input type="text" id="app-name" [(ngModel)]="settings.appName" name="appName"
+              placeholder="e.g. PG Rental System" />
+          </div>
+
+          <div class="form-group box-input">
+            <label for="theme">Default Theme</label>
+            <select id="theme" [(ngModel)]="settings.theme" name="theme">
+              <option value="dark">🌙 Dark Mode</option>
+              <option value="light">☀️ Light Mode</option>
+              <option value="auto">⚙️ System Default</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="icon">🔔</span>
+          <div class="header-text">
+            <h2>Alerts & Notifications</h2>
+            <p>Manage system communications</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-group toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Push Notifications</span>
+              <span class="toggle-desc">Enable dynamic push alerts for bookings and orders</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.notifications" name="notifications" />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-status" [class.on]="settings.notifications">{{ settings.notifications ? 'ON' : 'OFF'
+              }}</span>
+          </div>
+
+          <div class="form-group toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">System Email Alerts</span>
+              <span class="toggle-desc">Receive administrator summaries via email</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.emailAlerts" name="emailAlerts" />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-status" [class.on]="settings.emailAlerts">{{ settings.emailAlerts ? 'ON' : 'OFF'
+              }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maintenance -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="icon">💾</span>
+          <div class="header-text">
+            <h2>System Maintenance</h2>
+            <p>Database and operational controls</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-group toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Automated Backups</span>
+              <span class="toggle-desc">Daily backups of user and transaction data</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.autoBackup" name="autoBackup" />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-status" [class.on]="settings.autoBackup">{{ settings.autoBackup ? 'ON' : 'OFF' }}</span>
+          </div>
+
+          <div class="form-group toggle-row danger-zone">
+            <div class="toggle-info">
+              <span class="toggle-title text-danger">Maintenance Mode</span>
+              <span class="toggle-desc text-danger">Take the entire application offline for guests</span>
+            </div>
+            <label class="toggle-switch danger-switch">
+              <input type="checkbox" [(ngModel)]="settings.maintenanceMode" name="maintenanceMode" />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-status danger-status" [class.on]="settings.maintenanceMode">{{ settings.maintenanceMode
+              ? 'ACTIVE' : 'OFFLINE' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-save">
+          <span class="icon">💾</span> Save Changes
+        </button>
+        <button type="button" class="btn btn-reset" (click)="resetSettings()">
+          <span class="icon">🔄</span> Reset Defaults
+        </button>
+      </div>
+
+    </form>
+
+    <!-- Side Panel (System Info) -->
+    <div class="system-info-panel">
+      <div class="info-header">
+        <h2>📊 System Overview</h2>
+      </div>
+      <div class="info-grid">
+        <div class="sys-stat">
+          <div class="stat-icon">📦</div>
+          <div class="stat-meta">
+            <span class="label">App Version</span>
+            <span class="value">v1.0.0-beta</span>
+          </div>
+        </div>
+        <div class="sys-stat">
+          <div class="stat-icon">🗄️</div>
+          <div class="stat-meta">
+            <span class="label">Database Engine</span>
+            <span class="value">MongoDB Cluster</span>
+          </div>
+        </div>
+        <div class="sys-stat">
+          <div class="stat-icon">🌐</div>
+          <div class="stat-meta">
+            <span class="label">API Gateway</span>
+            <span class="value">Node.js Express v1</span>
+          </div>
+        </div>
+        <div class="sys-stat">
+          <div class="stat-icon">🕒</div>
+          <div class="stat-meta">
+            <span class="label">Last Configuration</span>
+            <span class="value">Today, 08:30 AM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

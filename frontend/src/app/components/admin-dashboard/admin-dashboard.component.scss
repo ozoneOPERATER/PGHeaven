@@ -1,0 +1,419 @@
+.admin-dashboard {
+  padding: 1rem 2rem 2.5rem;
+  animation: slideIn 0.4s ease;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------
+   Welcome Banner
+   --------------------------------- */
+.welcome-banner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+
+  /* Subtle background pattern */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 1;
+
+    h1 {
+      font-size: 2.2rem;
+      margin: 0 0 0.5rem 0;
+      color: #f8fafc;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      color: #cbd5e1;
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+      max-width: 600px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 2rem 1.5rem;
+
+    .banner-content h1 {
+      font-size: 1.8rem;
+    }
+  }
+}
+
+/* ---------------------------------
+   Stats Grid
+   --------------------------------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: #475569;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+  }
+
+  .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+
+    /* Dynamic Colors */
+    &.blue {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    &.green {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    &.orange {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    &.purple {
+      background: rgba(139, 92, 246, 0.15);
+      color: #8b5cf6;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+  }
+
+  .stat-content {
+    flex: 1;
+
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin: 0 0 0.5rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      color: #f8fafc;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0;
+      line-height: 1.1;
+    }
+  }
+
+  .stat-trend {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    .trend-icon {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    &.positive {
+      color: #10b981;
+    }
+
+    &.negative {
+      color: #ef4444;
+    }
+
+    &.neutral {
+      color: #f59e0b;
+    }
+
+    &.default {
+      color: #94a3b8;
+    }
+  }
+}
+
+/* ---------------------------------
+   Main Content Layout
+   --------------------------------- */
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 2rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.content-section {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      color: #f8fafc;
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-text {
+      background: none;
+      border: none;
+      color: #38bdf8;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+
+      &:hover {
+        color: #7dd3fc;
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+/* ---------------------------------
+   Quick Actions Grid
+   --------------------------------- */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  .action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    gap: 0.8rem;
+    text-align: center;
+
+    .action-icon {
+      font-size: 2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .action-text {
+      color: #e2e8f0;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    /* Hover States per card type */
+    &:hover {
+      transform: translateY(-4px);
+
+      .action-icon {
+        transform: scale(1.1);
+      }
+    }
+
+    &.add-pg:hover {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    &.manage-pgs:hover {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    &.view-analytics:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    &.settings:hover {
+      background: rgba(100, 116, 139, 0.1);
+      border-color: rgba(100, 116, 139, 0.3);
+    }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------------------------------
+   Timeline (Recent Activities)
+   --------------------------------- */
+.activity-timeline {
+  position: relative;
+  padding-left: 2rem;
+
+  /* The Line */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 11px;
+    /* Center with the dots */
+    width: 2px;
+    background: #334155;
+  }
+
+  .activity-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -2rem;
+      top: 0.25rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 3px solid #1e293b;
+      /* Match card background to cut the line */
+      z-index: 1;
+      transform: translateX(-0.5px);
+    }
+
+    .activity-icon {
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #0f172a;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      flex-shrink: 0;
+    }
+
+    .activity-details {
+      flex: 1;
+
+      .activity-title {
+        color: #f8fafc;
+        font-weight: 500;
+        margin: 0 0 0.4rem 0;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .activity-time {
+        color: #64748b;
+        font-size: 0.8rem;
+        margin: 0;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.no-activity {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem 0;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+/* ---------------------------------
+   Responsive Adjustments
+   --------------------------------- */
+@media (max-width: 768px) {
+  .dashboard-content {
+    gap: 1.5rem;
+  }
+
+  .content-section {
+    padding: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

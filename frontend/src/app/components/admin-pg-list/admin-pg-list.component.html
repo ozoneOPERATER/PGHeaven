@@ -1,0 +1,158 @@
+<div class="admin-pgs">
+
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>📋 Manage Properties</h1>
+      <p>View, edit, or remove PG accommodations from your platform</p>
+    </div>
+    <a routerLink="/admin/pgs/add" class="btn btn-primary add-btn">
+      <span class="icon">➕</span> Add New Property
+    </a>
+  </div>
+
+  <!-- Search & Filter Toolbar -->
+  <div class="admin-toolbar">
+    <div class="search-filters">
+      <div class="filter-group search-box">
+        <span class="filter-icon">🔍</span>
+        <input type="text" placeholder="Search by name..." [(ngModel)]="searchName" name="searchName"
+          (input)="filterPGs()" class="filter-input" />
+      </div>
+
+      <div class="filter-group search-box">
+        <span class="filter-icon">📍</span>
+        <input type="text" placeholder="Search by location..." [(ngModel)]="searchLocation" name="searchLocation"
+          (input)="filterPGs()" class="filter-input" />
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="priceRange" name="priceRange" (change)="filterPGs()" class="filter-input custom-select">
+          <option value="">₹ Any Price Range</option>
+          <option value="under5000">Under ₹5,000</option>
+          <option value="5000-10000">₹5,000 - ₹10,000</option>
+          <option value="over10000">Over ₹10,000</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-reset" (click)="resetFilters()" title="Clear Filters">
+      <span class="icon">🔄</span> Reset
+    </button>
+  </div>
+
+  <!-- Data Grid -->
+  <div class="pg-data-grid" *ngIf="pgs.length > 0">
+    <div class="grid-header">
+      <div class="col-property">Property Details</div>
+      <div class="col-location">Location</div>
+      <div class="col-price">Pricing</div>
+      <div class="col-capacity">Capacity & Status</div>
+      <div class="col-actions text-right">Actions</div>
+    </div>
+
+    <div class="grid-body">
+      <div class="grid-row" *ngFor="let pg of pgs">
+
+        <!-- Property Info -->
+        <div class="grid-cell col-property">
+          <div class="property-info">
+            <div class="property-avatar">
+              {{ pg.name.charAt(0) | uppercase }}
+            </div>
+            <div class="property-details">
+              <span class="property-name">{{ pg.name }}</span>
+              <span class="property-id">ID: {{ pg._id | slice:-6 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="grid-cell col-location">
+          <span class="location-text">📍 {{ pg.location }}</span>
+        </div>
+
+        <!-- Pricing -->
+        <div class="grid-cell col-price">
+          <div class="price-pill">₹{{ pg.price }}<span class="period">/day</span></div>
+        </div>
+
+        <!-- Capacity -->
+        <div class="grid-cell col-capacity">
+          <div class="capacity-info">
+            <span class="rooms-text">
+              <strong>{{ pg.availableRooms || 0 }}</strong> / {{ pg.totalRooms || pg.availableRooms || 1 }} Available
+            </span>
+            <div class="status-badge"
+              [ngClass]="{'fully-booked': (pg.availableRooms || 0) === 0, 'available': (pg.availableRooms || 0) > 0}">
+              {{ (pg.availableRooms || 0) === 0 ? '🔴 Booked' : '🟢 Active' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="grid-cell col-actions text-right">
+          <div class="action-buttons">
+            <button class="btn-action rooms" (click)="openRoomModal(pg)" title="Manage Rooms">
+              🚪
+            </button>
+            <button class="btn-action edit" (click)="edit(pg._id)" title="Edit Property">
+              ✏️
+            </button>
+            <button class="btn-action delete" (click)="delete(pg._id)" title="Delete Property">
+              🗑️
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="pgs.length === 0">
+    <div class="empty-icon">🏢</div>
+    <h3>No Properties Found</h3>
+    <p>Try adjusting your search filters or add a new property listing.</p>
+    <a routerLink="/admin/pgs/add" class="btn btn-primary mt-1">➕ Add Property</a>
+  </div>
+
+  <!-- Manage Rooms Modal -->
+  <div class="modal-overlay" *ngIf="showRoomModal" (click)="closeRoomModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🚪 Manage Rooms</h2>
+        <button class="btn-close" (click)="closeRoomModal()">✕</button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedPgForRooms">
+        <p class="pg-name-highlight">{{ selectedPgForRooms.name }}</p>
+
+        <div class="form-group">
+          <label>Total Rooms</label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="editRoomData.totalRooms" min="1" class="form-control" />
+          </div>
+          <span class="form-hint">The total physical rooms in this property.</span>
+        </div>
+
+        <div class="form-group">
+          <label>Available Rooms</label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="editRoomData.availableRooms" min="0" [max]="editRoomData.totalRooms"
+              class="form-control" />
+          </div>
+          <span class="form-hint">Currently vacant rooms ready for booking.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRoomModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveRooms()" [disabled]="isSavingRooms">
+          {{ isSavingRooms ? 'Saving...' : '💾 Save Changes' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

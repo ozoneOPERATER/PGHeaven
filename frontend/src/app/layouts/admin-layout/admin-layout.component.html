@@ -1,0 +1,74 @@
+<div class="admin-layout">
+  <div class="admin-header">
+    <div class="header-left">
+      <button class="toggle-sidebar" (click)="toggleSidebar()">☰</button>
+      <h1>🛡️ Admin Dashboard</h1>
+      <button class="btn btn-primary btn-sm home-btn" (click)="navigate('/')">
+        🏠 Home
+      </button>
+    </div>
+    <div class="header-right">
+      <div class="user-info" (click)="navigate('/profile')" title="View profile" style="cursor: pointer;">
+        <ng-container *ngIf="user?.avatar; else letterAvatar">
+          <img [src]="authService.getImageUrl(user.avatar)" alt="avatar" class="avatar-img">
+        </ng-container>
+        <ng-template #letterAvatar>
+          <span class="avatar">{{ user?.name?.charAt(0).toUpperCase() }}</span>
+        </ng-template>
+        <div class="details">
+          <p class="name">{{ user?.name }}</p>
+          <p class="role">Administrator</p>
+        </div>
+      </div>
+      <button class="btn btn-danger" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-container">
+    <aside [class.open]="sidebarOpen" class="sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item"
+          (click)="sidebarOpen = false">
+          <span class="icon">📊</span>
+          <span class="label">Dashboard</span>
+        </a>
+
+        <a routerLink="/admin/pgs" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">🏢</span>
+          <span class="label">Manage PGs</span>
+        </a>
+
+        <a routerLink="/admin/bookings" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">📅</span>
+          <span class="label">Bookings</span>
+        </a>
+        
+        <a routerLink="/admin/orders" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">🧾</span>
+          <span class="label">Orders</span>
+        </a>
+
+        <a routerLink="/admin/users" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">👥</span>
+          <span class="label">Users</span>
+        </a>
+
+        <hr class="nav-divider" />
+
+        <a routerLink="/admin/settings" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">⚙️</span>
+          <span class="label">Settings</span>
+        </a>
+
+        <a routerLink="/admin/complaints" routerLinkActive="active" class="nav-item" (click)="sidebarOpen = false">
+          <span class="icon">❗</span>
+          <span class="label">Complaints</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

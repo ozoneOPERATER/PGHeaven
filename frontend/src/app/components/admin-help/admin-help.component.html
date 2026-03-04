@@ -1,0 +1,107 @@
+<div class="admin-help">
+  <div class="page-header">
+    <h1>❓ Help & Support</h1>
+    <p>Get help using the admin panel and find answers to common questions</p>
+  </div>
+
+  <div class="help-container">
+    <div class="faq-section">
+      <h2>❔ Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div 
+          *ngFor="let faq of faqs; let i = index"
+          [class.expanded]="expandedFaq === i"
+          class="faq-item"
+        >
+          <div 
+            class="faq-question"
+            (click)="toggleFaq(i)"
+          >
+            <span class="question-text">{{ faq.question }}</span>
+            <span class="toggle-icon">{{ expandedFaq === i ? '▼' : '▶' }}</span>
+          </div>
+          <div *ngIf="expandedFaq === i" class="faq-answer">
+            {{ faq.answer }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="support-section">
+      <h2>🤝 Get Support</h2>
+      <div class="support-grid">
+        <div class="support-card">
+          <div class="support-icon">📧</div>
+          <h3>Email Support</h3>
+          <p>Get in touch with our support team via email</p>
+          <button class="btn-support" (click)="contactSupport()">📧 Contact</button>
+        </div>
+
+        <div class="support-card">
+          <div class="support-icon">📞</div>
+          <h3>Phone Support</h3>
+          <p>Call our help desk for immediate assistance</p>
+          <button class="btn-support" (click)="contactSupport()">📞 Call Now</button>
+        </div>
+
+        <div class="support-card">
+          <div class="support-icon">📱</div>
+          <h3>Live Chat</h3>
+          <p>Chat with support agents in real-time</p>
+          <button class="btn-support" (click)="contactSupport()">Start Chat</button>
+        </div>
+
+        <div class="support-card">
+          <div class="support-icon">📚</div>
+          <h3>Documentation</h3>
+          <p>Read detailed guides and tutorials</p>
+          <button class="btn-support" (click)="contactSupport()">Read Docs</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <h2>📖 Quick Start Guides</h2>
+      <div class="guides-grid">
+        <div class="guide-card">
+          <span class="guide-number">1</span>
+          <h3>Add Your First Property</h3>
+          <p>Step-by-step guide to add your first PG property to the system</p>
+          <a href="javascript:void(0)">Learn More →</a>
+        </div>
+
+        <div class="guide-card">
+          <span class="guide-number">2</span>
+          <h3>Manage Bookings</h3>
+          <p>Understand how to process and manage customer bookings</p>
+          <a href="javascript:void(0)">Learn More →</a>
+        </div>
+
+        <div class="guide-card">
+          <span class="guide-number">3</span>
+          <h3>View Analytics</h3>
+          <p>Analyze your business metrics and performance data</p>
+          <a href="javascript:void(0)">Learn More →</a>
+        </div>
+
+        <div class="guide-card">
+          <span class="guide-number">4</span>
+          <h3>User Management</h3>
+          <p>Manage admin users and regular customer accounts</p>
+          <a href="javascript:void(0)">Learn More →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>ℹ️ System Information</h2>
+      <div class="info-box">
+        <p><strong>Platform:</strong> PG Rental Management System</p>
+        <p><strong>Version:</strong> 1.0.0</p>
+        <p><strong>Support Hours:</strong> 24/7</p>
+        <p><strong>Response Time:</strong> Within 2 hours</p>
+        <p><strong>Status:</strong> <span class="status-badge">All Systems Operational</span></p>
+      </div>
+    </div>
+  </div>
+</div>

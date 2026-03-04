@@ -1,0 +1,23 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0%" stop-color="#5ee7df"/>
+      <stop offset="100%" stop-color="#b490ca"/>
+    </linearGradient>
+    <filter id="f" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="300" rx="12" fill="url(#g)"/>
+  <g filter="url(#f)">
+    <text x="60" y="120" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="700" fill="#0f172a">
+      Find your perfect PG — affordable, safe, and nearby
+    </text>
+    <text x="60" y="170" font-family="Inter, Arial, sans-serif" font-size="20" fill="#0f172a" opacity="0.9">
+      Browse listings, book rooms, order food, and manage everything from one place.
+    </text>
+  </g>
+  <g transform="translate(900,40)">
+    <rect x="0" y="0" width="240" height="200" rx="10" fill="#ffffff" opacity="0.06"/>
+  </g>
+</svg>

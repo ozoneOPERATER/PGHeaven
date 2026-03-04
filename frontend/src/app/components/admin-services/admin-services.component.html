@@ -1,0 +1,59 @@
+<div class="admin-services">
+  <div class="page-header">
+    <h1>🔧 Manage Service Requests</h1>
+    <p>View and manage all maintenance & service requests</p>
+  </div>
+
+  <div *ngIf="services.length === 0" class="empty-state">
+    <p>No service requests</p>
+  </div>
+
+  <div *ngIf="services.length > 0" class="services-list">
+    <div *ngFor="let s of services" class="service-card">
+      <div class="service-header">
+        <div class="service-type">
+          <span class="badge">{{ s.type }}</span>
+        </div>
+        <span [ngClass]="['status-badge', 'status-' + (s.status || 'pending').toLowerCase()]">
+          {{ s.status || 'Pending' }}
+        </span>
+      </div>
+
+      <div class="service-details">
+        <div class="detail-row">
+          <span class="label">User:</span>
+          <span>{{ s.user?.name }} ({{ s.user?.email }})</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Property:</span>
+          <span>{{ s.booking?.pg?.name }}</span>
+        </div>
+        <div class="detail-row" *ngIf="s.booking?.selectedRooms?.length">
+          <span class="label">Room No(s):</span>
+          <span class="room-badge">{{ formatRooms(s.booking?.selectedRooms) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Details:</span>
+          <span>{{ s.details }}</span>
+        </div>
+        <div class="detail-row" *ngIf="s.createdAt">
+          <span class="label">Date:</span>
+          <span>{{ s.createdAt | date: 'MMM dd, yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="service-actions">
+        <select 
+          class="status-select"
+          [value]="s.status"
+          (change)="updateStatus(s._id, $event)"
+        >
+          <option value="Pending">Pending</option>
+          <option value="InProgress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>

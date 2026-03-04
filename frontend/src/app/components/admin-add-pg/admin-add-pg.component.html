@@ -1,0 +1,161 @@
+<div class="admin-add-pg">
+  <div class="form-container">
+    <div class="form-header">
+      <div class="header-content">
+        <button class="btn-back" routerLink="/admin/pgs">← Back</button>
+        <h1>{{ editingId ? 'Edit Property' : 'Add New Property' }}</h1>
+        <p>{{ editingId ? 'Update the details for ' + model.name : 'Create a new property listing' }}</p>
+      </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div *ngIf="successMessage" class="status-message success">
+      <div class="status-icon">✓</div>
+      <p>{{ successMessage }}</p>
+    </div>
+    <div *ngIf="errorMessage" class="status-message error">
+      <div class="status-icon">✕</div>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <form (ngSubmit)="submit()" #pgForm="ngForm" class="property-form">
+
+      <!-- Section 1: Basic Details -->
+      <div class="form-section">
+        <div class="section-title">
+          <span class="section-icon">🏢</span>
+          <h2>Basic Details</h2>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Property Name <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-icon">🏷️</span>
+              <input type="text" placeholder="e.g., Sunny Apartments" [(ngModel)]="model.name" name="name" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Location <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-icon">📍</span>
+              <input type="text" placeholder="e.g., Downtown, Mumbai" [(ngModel)]="model.location" name="location"
+                required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <textarea placeholder="Describe the property, amenities, rules, etc..." [(ngModel)]="model.description"
+              name="description" rows="4" required></textarea>
+          </div>
+          <span class="form-hint">Highlight what makes this property special to potential tenants.</span>
+        </div>
+      </div>
+
+      <!-- Section 2: Pricing & Capacity -->
+      <div class="form-section">
+        <div class="section-title">
+          <span class="section-icon">💰</span>
+          <h2>Pricing & Capacity</h2>
+        </div>
+
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label>Price per Day <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₹</span>
+              <input type="number" placeholder="0" [(ngModel)]="model.price" name="price" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Total Rooms <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-icon">🚪</span>
+              <input type="number" placeholder="0" [(ngModel)]="model.totalRooms" name="totalRooms" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Default Food Charge</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₹</span>
+              <input type="number" placeholder="0" [(ngModel)]="model.defaultFoodPerRoom" name="defaultFoodPerRoom" />
+            </div>
+            <span class="form-hint">Per day, optional</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Media & Photos -->
+      <div class="form-section">
+        <div class="section-title">
+          <span class="section-icon">📷</span>
+          <h2>Media & Photos</h2>
+        </div>
+
+        <div class="upload-container">
+          <!-- Upload Area -->
+          <div class="upload-dropzone">
+            <div class="dropzone-content">
+              <span class="upload-icon">📁</span>
+              <h3>Click to upload images</h3>
+              <p>Supports JPG, PNG, WEBP (Max: {{ uploadConfig?.maxFileSize || '5MB' }})</p>
+              <label class="btn btn-secondary upload-btn">
+                Select Files
+                <input type="file" (change)="onFiles($event)" multiple accept="image/*" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Technical info (Hidden by default, shown if needed) -->
+          <div class="upload-tech-info" *ngIf="uploadConfig?.uploadPath">
+            <small>Saving to: {{ uploadConfig.uploadPath }}</small>
+          </div>
+
+          <!-- Image Preview Gallery -->
+          <div class="gallery-preview" *ngIf="existingImages.length > 0 || selectedFiles.length > 0">
+
+            <!-- Existing Images -->
+            <ng-container *ngIf="existingImages.length > 0">
+              <div class="preview-item existing" *ngFor="let img of existingImages; let i = index">
+                <img [src]="img.url" [alt]="'Existing image ' + (i+1)" />
+                <div class="item-overlay">
+                  <span class="badge">Current</span>
+                  <button type="button" class="btn-remove" (click)="removeExistingImage(i)"
+                    title="Remove Image">✕</button>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- New Scheduled Images -->
+            <ng-container *ngIf="selectedFiles.length > 0">
+              <div class="preview-item new" *ngFor="let file of selectedFiles; let i = index">
+                <img [src]="file.preview" [alt]="file.file.name" />
+                <div class="item-overlay">
+                  <span class="badge new-badge">New</span>
+                  <p class="filename" [title]="file.file.name">{{ file.file.name }}</p>
+                </div>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Action Bottom Bar -->
+      <div class="form-actions-bar">
+        <button type="button" class="btn btn-cancel" routerLink="/admin/pgs">Cancel</button>
+        <button type="button" class="btn btn-primary btn-save" (click)="submit()" [disabled]="!pgForm.form.valid">
+          <span class="icon">💾</span>
+          {{ editingId ? 'Update Property' : 'Save Property' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
