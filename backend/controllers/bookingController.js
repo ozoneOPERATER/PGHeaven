@@ -11,13 +11,13 @@ const getAvailableRooms = async (pgId, fromDate, toDate) => {
   const from = new Date(fromDate);
   const to = new Date(toDate);
 
-  // Find overlapping bookings
+  // Find overlapping bookings.  Use the same strict comparison as createBooking so that
+  // a room freed on the same day another reservation starts is not considered booked.
   const overlapping = await Booking.find({
     pg: pgId,
     status: { $ne: 'Cancelled' },
-    $or: [
-      { fromDate: { $lte: to }, toDate: { $gte: from } }
-    ]
+    fromDate: { $lt: to },
+    toDate: { $gt: from }
   });
 
   const totalRooms = pg.totalRooms || pg.availableRooms || 1;
@@ -65,17 +65,27 @@ exports.createBooking = async (req, res) => {
     if (isNaN(from) || isNaN(to) || from > to) return res.status(400).json({ message: 'Invalid date range' });
 
     // Prevent duplicate/overlapping active bookings for the same user and PG
+    // NOTE: we treat bookings that end exactly when a new one begins as non‑overlapping so
+    // that a user can make back‑to‑back reservations.  Only bookings with a true date range
+    // intersection will be considered conflicting.
     const existingBooking = await Booking.findOne({
       user: userId,
       pg: pgId,
       status: { $in: ['Approved', 'Pending'] },
-      $or: [
-        { fromDate: { $lte: to }, toDate: { $gte: from } }
-      ]
+      // overlap occurs when the existing booking starts before the new booking ends
+      // and the existing booking ends after the new booking starts.
+      fromDate: { $lt: to },
+      toDate: { $gt: from }
     });
     if (existingBooking) {
+      // include simple info to help debugging if multiple bookings are being attempted
       return res.status(400).json({
-        message: 'You already have an active booking for this property during this period. Please cancel it first.'
+        message: 'You already have an active booking for this property during this period. Please cancel it first.',
+        existing: {
+          fromDate: existingBooking.fromDate,
+          toDate: existingBooking.toDate,
+          status: existingBooking.status
+        }
       });
     }
 
@@ -298,6 +308,56 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
+// Admin utility: manually restore rooms associated with a booking
+exports.releaseRooms = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    if (booking.roomsReleased) {
+      return res.status(400).json({ message: 'Rooms already released for this booking' });
+    }
+
+    const pg = await PG.findById(booking.pg);
+    if (!pg) return res.status(404).json({ message: 'PG not found' });
+
+    const rooms = booking.roomsBooked || 1;
+    const maxRooms = pg.totalRooms || 1;
+    if (typeof pg.availableRooms === 'number') {
+      pg.availableRooms = Math.min(maxRooms, pg.availableRooms + rooms);
+      await pg.save();
+    }
+
+    // free up the specific room numbers so availability calculations ignore them
+    booking.selectedRooms = [];
+    booking.roomsBooked = 0;
+
+    booking.roomsReleased = true;
+    await booking.save();
+
+    res.json({ booking, pg, message: `${rooms} room(s) added back to ${pg.name}` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.clearFoodNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (booking.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+    booking.foodNotified = false;
+    await booking.save();
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.updatePayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -319,12 +379,13 @@ exports.updatePayment = async (req, res) => {
 
     const authoritativeDue = roomCharge + foodTotal;
 
-    // Use incoming amountPaid but clamp to authoritative total (can't pay more than due)
-    let paid = Number(incomingAmountPaid) || 0;
+    // Determine how much new payment is being added and accumulate with previous payments
+    const previousPaid = booking.amountPaid || 0;
+    let paid = previousPaid + (Number(incomingAmountPaid) || 0);
     if (paid > authoritativeDue) paid = authoritativeDue;
 
-    booking.amountDue = authoritativeDue;
     booking.amountPaid = paid;
+    booking.amountDue = Math.max(0, authoritativeDue - paid);
     booking.paymentMethod = paymentMethod || booking.paymentMethod;
     booking.paymentStatus = paid >= authoritativeDue ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
     booking.updatedAt = new Date();
@@ -365,9 +426,22 @@ exports.checkoutBooking = async (req, res) => {
     const pgPrice = (booking.pg && booking.pg.price) ? Number(booking.pg.price) : 0;
     const roomCharge = pgPrice * (booking.roomsBooked || 1) * days;
 
-    // Build invoice items: room charges + food orders with their details
+    // Build invoice items: show room due in a way that accounts for any previous payment,
+    // and add a descriptive line if the room has already been paid for or partially paid.
     const items = [];
-    if (roomCharge > 0) items.push({ description: `Room charges (${booking.roomsBooked} room(s) @ ₹${pgPrice}/day for ${days} days)`, amount: roomCharge });
+    const previousPaid = booking.amountPaid || 0;
+    const roomDue = Math.max(0, roomCharge - previousPaid);
+
+    if (previousPaid >= roomCharge) {
+      // fully paid room, still include a line for clarity but with zero amount
+      items.push({ description: `Room charges (already paid) - ${booking.roomsBooked || 1} room(s)`, amount: 0 });
+    } else {
+      let desc = `Room charges (${booking.roomsBooked} room(s) @ ₹${pgPrice}/day for ${days} days)`;
+      if (previousPaid > 0) {
+        desc += ` (₹${previousPaid} already paid)`;
+      }
+      items.push({ description: desc, amount: roomDue });
+    }
 
     // Add food orders with menu item details and calculate total food charge
     let foodTotal = 0;
@@ -381,7 +455,7 @@ exports.checkoutBooking = async (req, res) => {
       }
     });
 
-    const total = roomCharge + foodTotal;
+    const total = roomDue + foodTotal;
 
     // Accept optional payment payload: { amount, method }
     const payment = req.body && req.body.payment ? req.body.payment : null;
@@ -392,6 +466,7 @@ exports.checkoutBooking = async (req, res) => {
       // Invoice model only allows 'Draft','Pending','Paid'. Use 'Pending' for partial payments.
       invoiceStatus = paidAmount >= total ? 'Paid' : 'Pending';
     }
+    // if there's no payment payload, leave paidAmount at 0 so we just render the invoice
 
     const invoiceData = {
       booking: booking._id,
@@ -412,12 +487,23 @@ exports.checkoutBooking = async (req, res) => {
       if (orders.length) await Order.updateMany({ _id: { $in: orders.map(o => o._id) } }, { billed: true });
     }
 
-    // Update booking amounts and status
-    booking.amountDue = roomCharge + foodTotal;
-    if (paidAmount > 0) booking.amountPaid = paidAmount;
-    if (paidAmount >= booking.amountDue) booking.paymentStatus = 'Paid';
-    else if (paidAmount > 0) booking.paymentStatus = 'Partial';
-    else booking.paymentStatus = 'Pending';
+    // Update booking amounts and status.  amountDue should reflect remaining balance
+    const previousPaidTotal = booking.amountPaid || 0;
+    booking.amountDue = Math.max(0, roomCharge + foodTotal - previousPaidTotal - paidAmount);
+
+    if (paidAmount > 0) {
+      // accumulate payments rather than overwrite
+      booking.amountPaid = previousPaidTotal + paidAmount;
+    }
+
+    const overallTotal = roomCharge + foodTotal;
+    if (booking.amountPaid >= overallTotal) {
+      booking.paymentStatus = 'Paid';
+    } else if (booking.amountPaid > 0) {
+      booking.paymentStatus = 'Partial';
+    } else {
+      booking.paymentStatus = 'Pending';
+    }
 
     await booking.save();
 

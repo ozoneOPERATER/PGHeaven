@@ -10,7 +10,7 @@ exports.register = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hash });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar } });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -22,7 +22,7 @@ exports.login = async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(400).json({ message: 'Invalid credentials' });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar } });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -42,6 +42,9 @@ exports.getUsers = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
+    // debug: log incoming body and file to help diagnose upload issues
+    console.log('updateUser body:', req.body);
+    console.log('updateUser file:', req.file && { originalname: req.file.originalname, path: req.file.path });
     const { id } = req.params;
     const userId = id || req.user.id;
     const { name, email, role } = req.body;
@@ -53,9 +56,13 @@ exports.updateUser = async (req, res) => {
     }
     user.name = name || user.name;
     user.email = email || user.email;
+    // if multer processed a file, store its path
+    if (req.file) {
+      user.avatar = req.file.path;
+    }
     if (req.user.role === 'admin' && role) user.role = role;
     await user.save();
-    res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
+    res.json({ id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

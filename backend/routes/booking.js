@@ -20,5 +20,10 @@ router.put('/:id/status', protect, admin, bookingCtrl.updateBookingStatus);
 router.put('/:id/cancel', protect, bookingCtrl.cancelBooking);
 router.put('/:id/payment', protect, bookingCtrl.updatePayment);
 router.put('/:id/checkout', protect, bookingCtrl.checkoutBooking);
+// clear food-ready notification for user
+router.put('/:id/clear-food-notice', protect, bookingCtrl.clearFoodNotification);
+
+// manual release of rooms back to PG availability (admin only)
+router.put('/:id/release', protect, admin, bookingCtrl.releaseRooms);
 
 module.exports = router;

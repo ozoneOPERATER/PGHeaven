@@ -15,6 +15,13 @@ const BookingSchema = new mongoose.Schema({
   razorpayPaymentId: { type: String },
   fromDate: Date,
   toDate: Date,
+  // admin feature: whether rooms have been manually released back to PG availability
+  roomsReleased: { type: Boolean, default: false },
+  // Food billing/notification fields
+  foodInvoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
+  foodBillAmount: { type: Number, default: 0 },
+  foodBillPaid: { type: Boolean, default: false },
+  foodNotified: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', BookingSchema);

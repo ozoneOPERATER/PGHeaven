@@ -14,17 +14,16 @@ function getRazorpayClient() {
 // Create a Razorpay order for an invoice/booking
 exports.createRazorpayOrder = async (req, res) => {
   try {
-    const { bookingId, amount } = req.body;
-    if (!bookingId || !amount) return res.status(400).json({ message: 'bookingId and amount are required' });
+    const { bookingId, invoiceId, amount } = req.body;
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!amount) return res.status(400).json({ message: 'amount is required' });
 
     const amountPaise = Math.round(amount * 100);
+    const receiptBase = invoiceId ? `inv_${invoiceId}` : `bk_${bookingId || 'unknown'}`;
     const options = {
       amount: amountPaise,
       currency: 'INR',
-      receipt: `rcpt_${bookingId}_${Date.now()}`,
+      receipt: `${receiptBase}_${Date.now()}`,
       payment_capture: 1
     };
 
@@ -33,9 +32,18 @@ exports.createRazorpayOrder = async (req, res) => {
 
     const order = await client.orders.create(options);
 
-    // Save razorpayOrderId on booking for reference
-    booking.razorpayOrderId = order.id;
-    await booking.save();
+    // If invoiceId provided, save on Invoice, else save on Booking
+    if (invoiceId) {
+      const inv = await Invoice.findById(invoiceId);
+      if (!inv) return res.status(404).json({ message: 'Invoice not found' });
+      inv.razorpayOrderId = order.id;
+      await inv.save();
+    } else if (bookingId) {
+      const booking = await Booking.findById(bookingId);
+      if (!booking) return res.status(404).json({ message: 'Booking not found' });
+      booking.razorpayOrderId = order.id;
+      await booking.save();
+    }
 
     res.json({ order, key: process.env.RAZORPAY_KEY_ID });
   } catch (err) {
@@ -68,7 +76,17 @@ exports.razorpayWebhook = async (req, res) => {
         invoice.razorpayPaymentId = razorpayPaymentId;
         await invoice.save();
         // mark orders billed
-        await require('../models/Order').updateMany({ _id: { $in: invoice.orders } }, { billed: true });
+        const Order = require('../models/Order');
+        await Order.updateMany({ _id: { $in: invoice.orders } }, { billed: true, status: 'Delivered' });
+        // if invoice relates to food, update booking food flags
+        if (invoice.booking) {
+          const bk = await Booking.findById(invoice.booking);
+          if (bk) {
+            bk.foodBillPaid = true;
+            bk.foodNotified = false;
+            await bk.save();
+          }
+        }
       }
       const booking = await Booking.findOne({ razorpayOrderId });
       if (booking) {

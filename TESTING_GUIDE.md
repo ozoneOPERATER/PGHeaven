@@ -111,6 +111,7 @@ Admin Layout:
 7. ✓ Active menu item is highlighted
 8. ✓ Sidebar scrollable with custom scrollbar
 9. ✓ User info in header (avatar, name, role)
+10. ✓ Profile page has logout button and allows uploading a profile photo (change should persist)
 10. ✓ Logout button in header
 
 Admin Dashboard (/admin/dashboard):

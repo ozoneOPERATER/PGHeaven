@@ -34,6 +34,21 @@ exports.createOrder = async (req, res) => {
     // Populate reference data
     await order.populate('booking');
 
+    // If order attached to a booking and a roomNumber was used, remove that room
+    // from the booking.selectedRooms to mark it as handled
+    if (bookingId && data.roomNumber) {
+      try {
+        const bookingToUpdate = await Booking.findById(bookingId);
+        if (bookingToUpdate && Array.isArray(bookingToUpdate.selectedRooms)) {
+          bookingToUpdate.selectedRooms = bookingToUpdate.selectedRooms.filter(r => r !== data.roomNumber);
+          await bookingToUpdate.save();
+        }
+      } catch (e) {
+        // Don't block order creation if booking update fails; log error to console
+        console.error('Failed to update booking selectedRooms after order:', e.message || e);
+      }
+    }
+
     res.json({
       order,
       message: `Order created for room: ${data.roomNumber || 'N/A'}`
@@ -80,6 +95,16 @@ exports.createOrderForBooking = async (req, res) => {
 
     const order = await Order.create(data);
     await order.populate('booking');
+
+    // Remove the room from booking.selectedRooms so it won't be shown again
+    if (booking && data.roomNumber && Array.isArray(booking.selectedRooms)) {
+      try {
+        booking.selectedRooms = booking.selectedRooms.filter(r => r !== data.roomNumber);
+        await booking.save();
+      } catch (e) {
+        console.error('Failed to remove room from booking.selectedRooms:', e.message || e);
+      }
+    }
 
     res.json({
       order,
@@ -172,7 +197,65 @@ exports.getOrdersByRoom = async (req, res) => {
 };
 
 exports.updateOrderStatus = async (req, res) => {
-  try { const { id } = req.params; const { status } = req.body; const o = await Order.findByIdAndUpdate(id, { status }, { new: true }); res.json(o); } catch (err) { res.status(500).json({ message: err.message }); }
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) return res.status(400).json({ message: 'status is required' });
+
+    const order = await Order.findById(id).populate('booking');
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    order.status = status;
+    await order.save();
+
+    // When admin marks Prepared, create an invoice (including room info) and notify the booking
+    if (status === 'Prepared' && order.booking) {
+      try {
+        const Invoice = require('../models/Invoice');
+        // include room information even if amount is zero so the customer sees it on the bill
+        const roomLabel = order.booking.selectedRooms && order.booking.selectedRooms.length
+          ? order.booking.selectedRooms.join(', ')
+          : order.roomNumber || 'N/A';
+
+        const invoiceItems = [];
+        invoiceItems.push({
+          description: `Room(s): ${roomLabel}`,
+          amount: 0
+        });
+        invoiceItems.push({ 
+          order: order._id,
+          description: `Food order ${order._id}`,
+          amount: order.total || 0 
+        });
+
+        const invoice = await Invoice.create({
+          booking: order.booking._id,
+          orders: [order._id],
+          items: invoiceItems,
+          total: (order.total || 0),
+          status: 'Pending'
+        });
+
+        const bookingToUpdate = await Booking.findById(order.booking._id);
+        if (bookingToUpdate) {
+          bookingToUpdate.foodInvoice = invoice._id;
+          bookingToUpdate.foodBillAmount = invoice.total || 0;
+          bookingToUpdate.foodBillPaid = false;
+          bookingToUpdate.foodNotified = true;
+          await bookingToUpdate.save();
+        }
+      } catch (e) {
+        console.error('Failed to create food invoice/notify booking:', e.message || e);
+      }
+    }
+
+    // Save and return updated order
+    const updated = await Order.findById(id).populate('booking');
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 module.exports = exports;
